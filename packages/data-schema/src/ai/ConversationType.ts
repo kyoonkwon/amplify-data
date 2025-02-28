@@ -14,6 +14,7 @@ import {
 } from './types/ConversationMessageContent';
 import { ToolConfiguration } from './types/ToolConfiguration';
 import { ConversationStreamErrorEvent, ConversationStreamEvent } from './types/ConversationStreamEvent';
+import type {  StringFilter, NumericFilter, BooleanFilters } from '../util';
 
 export const brandName = 'conversationCustomOperation';
 
@@ -47,9 +48,23 @@ interface ConversationRouteUpdateInput {
   name?: string;
 }
 
+type LogicalFilters<T> = {
+  and?: ModelFilter<T> | ModelFilter<T>[];
+  or?: ModelFilter<T> | ModelFilter<T>[];
+  not?: ModelFilter<T>;
+};
+
+type ModelFilter<T> = LogicalFilters<T> & {
+  [K in keyof T as T[K] extends LazyLoader<any, any> ? never : K]? :
+  boolean extends T[K] ? BooleanFilters :
+  number extends T[K] ? NumericFilter :
+  StringFilter;
+};
+
 interface ConversationRouteListInput {
   limit?: number;
   nextToken?: string | null;
+  filter? : ModelFilter<Conversation>;
 }
 
 export interface ConversationRoute {
